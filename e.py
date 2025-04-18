@@ -8,7 +8,6 @@ from wordcloud import WordCloud
 import re
 from textblob import TextBlob
 import plotly.express as px
-import scipy
 import plotly.graph_objs as go
 import numpy as np
 import matplotlib.font_manager as fm

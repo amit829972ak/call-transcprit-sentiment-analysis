@@ -1,5 +1,9 @@
 import streamlit as st
 import pandas as pd
+import os
+# Set NLTK_DATA environment variable to a writable directory
+if 'NLTK_DATA' not in os.environ:
+    os.environ['NLTK_DATA'] = './'  # Use current directory
 import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
 import matplotlib.pyplot as plt
@@ -12,7 +16,6 @@ import plotly.graph_objs as go
 import numpy as np
 import matplotlib.font_manager as fm
 import scipy
-import os
 from scipy.linalg import get_blas_funcs, triu 
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.corpus import stopwords
@@ -29,20 +32,52 @@ from gensim.models import LdaModel
 import time
 import sys
 
+def ensure_nltk_resources():
+    """Check for NLTK resources and download only if needed"""
+    try:
+        # Try to use the resources first before downloading
+        from nltk.data import find
+        try:
+            find('tokenizers/punkt')
+        except LookupError:
+            nltk.download('punkt', quiet=True)
+        
+        try:
+            find('taggers/averaged_perceptron_tagger')
+        except LookupError:
+            nltk.download('averaged_perceptron_tagger', quiet=True)
+        
+        try:
+            find('corpora/stopwords')
+        except LookupError:
+            nltk.download('stopwords', quiet=True)
+            
+        try:
+            find('sentiment/vader_lexicon')
+        except LookupError:
+            nltk.download('vader_lexicon', quiet=True)
+            
+        return True
+    except Exception as e:
+        st.warning(f"NLTK resource issue: {str(e)}")
+        return False
+
+# Call this function early
+nltk_ready = ensure_nltk_resources()
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 from textblob import download_corpora
-# Download NLTK data if needed
+# Download NLTK data with better error handling
 try:
-    # Attempt downloads with a timeout
-    nltk.download('punkt', quiet=True, raise_on_error=True)
-    nltk.download('averaged_perceptron_tagger', quiet=True, raise_on_error=True)
-    nltk.download('stopwords', quiet=True, raise_on_error=True)
-    nltk.download('vader_lexicon', quiet=True, raise_on_error=True)
+    nltk.download('punkt', quiet=True)
+    nltk.download('averaged_perceptron_tagger', quiet=True)
+    nltk.download('stopwords', quiet=True)
+    nltk.download('vader_lexicon', quiet=True)
 except Exception as e:
-    st.warning(f"Could not download required NLTK resources: {str(e)}")
-    st.info("Some features will be disabled. Please check your internet connection.")
+    st.warning(f"NLTK resource download issue: {str(e)}")
+    st.info("Some features may be limited. The app will continue with reduced functionality.")
 
 
 
@@ -225,12 +260,19 @@ def split_into_sentences(text, use_spacy=False):
     
     # Use spaCy if available for better sentence segmentation
     if use_spacy and nlp:
-        doc = nlp(text)
-        return [sent.text.strip() for sent in doc.sents if sent.text.strip()]
+        try:
+            doc = nlp(text)
+            return [sent.text.strip() for sent in doc.sents if sent.text.strip()]
+        except Exception:
+            pass  # Fall back to NLTK
     
-    # Fallback to NLTK
-    sentences = sent_tokenize(text)
-    return [s.strip() for s in sentences if s.strip()]
+    # Fallback to NLTK or simple splitting
+    try:
+        sentences = sent_tokenize(text)
+        return [s.strip() for s in sentences if s.strip()]
+    except LookupError:
+        # Most basic fallback if NLTK resources aren't available
+        return [s.strip() for s in re.split(r'[.!?]+', text) if s.strip()]
 
 def blend_sentiment_scores(vader_scores, textblob_scores, context_factor=0.2):
     """Blend different sentiment analysis methods with context awareness"""

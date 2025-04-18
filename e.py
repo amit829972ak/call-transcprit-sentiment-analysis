@@ -33,12 +33,16 @@ import sys
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 from textblob import download_corpora
-
-# Download required corpora for NLTK & TextBlob
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
-nltk.download('stopwords')
-nltk.download('vader_lexicon')
+# Download NLTK data if needed
+try:
+    # Attempt downloads with a timeout
+    nltk.download('punkt', quiet=True, raise_on_error=True)
+    nltk.download('averaged_perceptron_tagger', quiet=True, raise_on_error=True)
+    nltk.download('stopwords', quiet=True, raise_on_error=True)
+    nltk.download('vader_lexicon', quiet=True, raise_on_error=True)
+except Exception as e:
+    st.warning(f"Could not download required NLTK resources: {str(e)}")
+    st.info("Some features will be disabled. Please check your internet connection.")
 
 
 

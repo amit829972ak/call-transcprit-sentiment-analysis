@@ -333,23 +333,36 @@ def get_emotion_scores(text):
     if not text or not text.strip():
         return {emotion: 0 for emotion in EMOTION_LEXICONS}
     
-    # Tokenize and clean words
-    words = word_tokenize(clean_text(text.lower()))
-    words = [word for word in words if word.isalpha()]  # Keep only alphabetic words
-    
-    # Calculate emotion scores with lexical analysis
-    emotion_scores = {}
-    word_count = max(1, len(words))  # Avoid division by zero
-    
-    for emotion, lexicon in EMOTION_LEXICONS.items():
-        # Count words that match the emotion lexicon
-        emotion_words = [word for word in words if word in lexicon]
-        count = len(emotion_words)
+    try:
+        # Check if necessary NLTK resources are available
+        try:
+            # Try to tokenize - will fail if punkt is not downloaded
+            word_tokenize("Test sentence")
+        except LookupError:
+            # Download punkt if needed
+            nltk.download('punkt', quiet=True)
         
-        # Calculate percentage
-        emotion_scores[emotion] = count / word_count * 100
+        # Tokenize and clean words
+        words = word_tokenize(clean_text(text.lower()))
+        words = [word for word in words if word.isalpha()]  # Keep only alphabetic words
         
-    return emotion_scores
+        # Calculate emotion scores with lexical analysis
+        emotion_scores = {}
+        word_count = max(1, len(words))  # Avoid division by zero
+        
+        for emotion, lexicon in EMOTION_LEXICONS.items():
+            # Count words that match the emotion lexicon
+            emotion_words = [word for word in words if word in lexicon]
+            count = len(emotion_words)
+            
+            # Calculate percentage
+            emotion_scores[emotion] = count / word_count * 100
+        
+        return emotion_scores
+    except Exception as e:
+        # Fallback return empty scores
+        st.warning(f"Error in emotion analysis: {str(e)}")
+        return {emotion: 0 for emotion in EMOTION_LEXICONS}
 
 def extract_context_aware_topics(texts, num_topics=3):
     """Extract key topics from texts using LDA"""

@@ -32,14 +32,14 @@ import sys
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 from textblob import download_corpora
 
 # Download required corpora for NLTK & TextBlob
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('stopwords')
-nltk.download('vader_lexicon')  # Ensures TextBlob works properly
+nltk.download('vader_lexicon')
+download_corpora()
 
 
 # Ensure spaCy model is properly loaded

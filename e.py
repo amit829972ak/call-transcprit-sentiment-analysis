@@ -34,15 +34,13 @@ import sys
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Download NLTK data if needed
-try:
-    nltk.data.find('tokenizers/punkt')
-    nltk.data.find('vader_lexicon')
-    nltk.data.find('stopwords')
-except LookupError:
-    nltk.download('punkt')
-    nltk.download('vader_lexicon')
-    nltk.download('stopwords')
+# ✅ Download NLTK data if not present
+nltk_resources = ['punkt', 'vader_lexicon', 'stopwords']
+for resource in nltk_resources:
+    try:
+        nltk.data.find(f'tokenizers/{resource}' if resource == 'punkt' else f'corpora/{resource}')
+    except LookupError:
+        nltk.download(resource)
 
 # Ensure spaCy model is properly loaded
 try:

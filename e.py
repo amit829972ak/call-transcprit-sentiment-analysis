@@ -11,7 +11,7 @@ import plotly.express as px
 import plotly.graph_objs as go
 import numpy as np
 import matplotlib.font_manager as fm
-from numpy import triu 
+from scipy.parse import triu 
 import os
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.corpus import stopwords

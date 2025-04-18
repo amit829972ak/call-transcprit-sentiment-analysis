@@ -12,7 +12,7 @@ import spicy
 import plotly.graph_objs as go
 import numpy as np
 import matplotlib.font_manager as fm
-from scipy.linalg import triu
+from numpy import triu
 import os
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.corpus import stopwords

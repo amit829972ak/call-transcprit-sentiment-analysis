@@ -39,8 +39,7 @@ from textblob import download_corpora
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('stopwords')
-nltk.download('vader_lexicon')
-download_corpora()  # Ensures TextBlob works properly
+nltk.download('vader_lexicon')  # Ensures TextBlob works properly
 
 
 # Ensure spaCy model is properly loaded

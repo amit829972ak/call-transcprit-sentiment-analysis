@@ -39,7 +39,7 @@ nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('stopwords')
 nltk.download('vader_lexicon')
-download_corpora()
+
 
 
 # Ensure spaCy model is properly loaded

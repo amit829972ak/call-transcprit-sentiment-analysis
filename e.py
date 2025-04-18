@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import nltk
-nltk.download("punkt")
 from nltk.sentiment import SentimentIntensityAnalyzer
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -34,13 +33,15 @@ import sys
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ✅ Download NLTK data if not present
-nltk_resources = ['punkt', 'vader_lexicon', 'stopwords']
-for resource in nltk_resources:
-    try:
-        nltk.data.find(f'tokenizers/{resource}' if resource == 'punkt' else f'corpora/{resource}')
-    except LookupError:
-        nltk.download(resource)
+from textblob import download_corpora
+
+# Download required corpora for NLTK & TextBlob
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('stopwords')
+nltk.download('vader_lexicon')
+download_corpora()  # Ensures TextBlob works properly
+
 
 # Ensure spaCy model is properly loaded
 try:

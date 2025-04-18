@@ -11,7 +11,6 @@ import plotly.express as px
 import plotly.graph_objs as go
 import numpy as np
 import matplotlib.font_manager as fm
-from numpy import triu 
 import os
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.corpus import stopwords
@@ -42,10 +41,18 @@ except LookupError:
     nltk.download('vader_lexicon')
     nltk.download('stopwords')
 
+# Ensure spaCy model is properly loaded
 try:
-    nlp = spacy.load('en_core_web_sm')
+    import spacy
+    try:
+        nlp = spacy.load('en_core_web_sm')
+    except OSError:
+        st.warning("Downloading spaCy model... This may take a moment.")
+        from spacy.cli import download
+        download('en_core_web_sm')
+        nlp = spacy.load('en_core_web_sm')
 except Exception as e:
-    st.warning(f"Error loading spaCy model: {str(e)}. Some advanced features will be disabled.")
+    st.warning(f"Error with spaCy: {str(e)}. Some features will be disabled.")
     nlp = None
 
 # Page Configuration
@@ -299,7 +306,7 @@ def get_emotion_scores(text):
 
 def extract_context_aware_topics(texts, num_topics=3):
     """Extract key topics from texts using LDA"""
-    if not texts or len(texts) == 0:
+    if not texts or len(texts) == 0 or all(not text.strip() for text in texts):
         return [], []
     
     try:
@@ -311,23 +318,17 @@ def extract_context_aware_topics(texts, num_topics=3):
             max_features=50
         )
         
-        # Handle empty list or texts
-        if not texts or all(not text.strip() for text in texts):
-            return [], []
-        
         # Feature extraction
         X = vectorizer.fit_transform(texts)
         feature_names = vectorizer.get_feature_names_out()
         
-        # If not enough features, return empty results
+        # Check if we have enough features
         if X.shape[1] < num_topics + 1:
-            return [], []
+            num_topics = max(1, X.shape[1] - 1)
+            if num_topics < 1:
+                return [], []
         
-        # Apply LDA - ensure number of topics doesn't exceed features
-        num_topics = min(num_topics, X.shape[1] - 1)
-        if num_topics < 1:
-            return [], []
-            
+        # Apply LDA
         lda = LatentDirichletAllocation(
             n_components=num_topics,
             max_iter=10,
@@ -341,7 +342,7 @@ def extract_context_aware_topics(texts, num_topics=3):
         topics = []
         topic_keywords = []
         for topic_idx, topic in enumerate(lda.components_):
-            top_words_idx = topic.argsort()[:-6:-1]  # Get indices of top 5 words
+            top_words_idx = topic.argsort()[:-6:-1]
             top_words = [feature_names[i] for i in top_words_idx]
             topics.append(f"Topic {topic_idx+1}")
             topic_keywords.append(", ".join(top_words))
@@ -349,7 +350,8 @@ def extract_context_aware_topics(texts, num_topics=3):
         return topics, topic_keywords
     
     except Exception as e:
-        logger.error(f"Error in topic extraction: {str(e)}")
+        st.error(f"Topic extraction error: {str(e)}")
+        st.error(traceback.format_exc())
         return [], []
 
 def detect_intent(text):
@@ -1389,7 +1391,7 @@ def main():
                 # Display summary
                 for point in summary_points:
                     st.write(point)
-                
+                pass
             except Exception as e:
                 st.error(f"Error: {str(e)}")
                 st.error(traceback.format_exc())
